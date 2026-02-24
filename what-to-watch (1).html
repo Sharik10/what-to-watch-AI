@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What To Watch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: #0a0a0f; font-family: 'Inter', sans-serif; color: #e2e8f0; padding: 2rem 1rem; }
+    .container { max-width: 960px; margin: 0 auto; }
+
+    .header { text-align: center; margin-bottom: 2.5rem; }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 9vw, 5.5rem);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #fff 30%, #e50914 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1; margin-bottom: 0.4rem;
+    }
+    .header-sub { color: #3a3a55; font-size: 0.82rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+    .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .filter-btn {
+      background: #12121a; border: 1px solid #1e2030; border-radius: 100px;
+      padding: 8px 18px; color: #64748b; font-size: 0.82rem; cursor: pointer;
+      transition: all 0.18s; font-family: 'Inter', sans-serif;
+    }
+    .filter-btn:hover, .filter-btn.active { border-color: #e50914; color: #fff; background: rgba(229,9,20,0.1); }
+
+    .search-bar {
+      display: flex; gap: 0.6rem; background: #12121a; border: 1px solid #1e2030;
+      border-radius: 100px; padding: 0.5rem 0.5rem 0.5rem 1.4rem;
+      transition: border-color 0.2s; margin-bottom: 1.5rem;
+    }
+    .search-bar:focus-within { border-color: #e50914; }
+    .search-input { flex: 1; background: transparent; border: none; color: #e2e8f0; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
+    .search-input::placeholder { color: #3a3a55; }
+    .btn-search {
+      background: #e50914; color: #fff; border: none; border-radius: 100px;
+      padding: 0.6rem 1.6rem; font-family: 'Inter', sans-serif; font-size: 0.85rem;
+      font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-search:hover { background: #c8000f; }
+
+    .section-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 1rem; letter-spacing: 0.04em; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+    @media(max-width:480px){ .grid { grid-template-columns: repeat(2,1fr); } }
+
+    .card {
+      border-radius: 14px; overflow: hidden; cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      animation: popIn 0.4s ease both;
+    }
+    .card:hover { transform: scale(1.04) translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.7); }
+    @keyframes popIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+
+    .card-inner {
+      aspect-ratio: 2/3; display: flex; flex-direction: column;
+      justify-content: flex-end; padding: 1rem; position: relative; overflow: hidden;
+    }
+    .card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.97) 0%, rgba(0,0,0,.45) 55%, rgba(0,0,0,.05) 100%); }
+    .card-glow { position: absolute; top:0;left:0;right:0;height:55%; pointer-events:none; }
+    .card-icon { position:absolute;top:50%;left:50%;transform:translate(-50%,-62%);font-size:3.2rem;opacity:.18;pointer-events:none; }
+    .card-content { position: relative; z-index: 2; }
+    .plat-badge { display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;font-size:0.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px; }
+    .card-title { font-family:'Montserrat',sans-serif;font-weight:800;font-size:0.85rem;line-height:1.2;color:#fff;margin-bottom:3px; }
+    .card-meta { color:rgba(255,255,255,.38);font-size:0.65rem;margin-bottom:5px; }
+    .vibe-tags { display:flex;flex-wrap:wrap;gap:2px; }
+    .vibe-tag { display:inline-block;background:rgba(255,255,255,.09);border-radius:100px;padding:2px 7px;font-size:0.6rem;color:rgba(255,255,255,.5); }
+
+    .empty { text-align:center;padding:3rem 0;color:#3a3a55;font-size:0.9rem; }
+
+    /* Modal */
+    .modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem; }
+    .modal-backdrop.open { display:flex; }
+    .modal-box { background:#13131d;border:1px solid #1e2030;border-radius:20px;max-width:500px;width:100%;padding:2rem;position:relative;max-height:90vh;overflow-y:auto;animation:slideUp .25s ease; }
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .close-btn { position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.08);border:none;color:#fff;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center; }
+    .close-btn:hover { background:rgba(255,255,255,.16); }
+    .modal-title { font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.5rem;color:#fff;margin-bottom:0.3rem; }
+    .modal-meta { color:#3a3a55;font-size:0.78rem;margin-bottom:0.8rem;display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center; }
+    .modal-desc { color:#94a3b8;font-size:0.9rem;line-height:1.65;margin-bottom:1rem; }
+    .why-box { background:rgba(229,9,20,.07);border:1px solid rgba(229,9,20,.15);border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;color:#fca5a5;font-size:.82rem;line-height:1.5; }
+    .modal-tags { display:flex;flex-wrap:wrap;gap:.4rem; }
+    .modal-tag { background:#1e2030;border-radius:100px;padding:4px 12px;font-size:.72rem;color:#64748b; }
+
+    .divider { height:1px;background:linear-gradient(to right,transparent,#1e2030,transparent);margin:2rem 0; }
+    .hint { text-align:center;color:#1e2030;font-size:.72rem;margin-top:.5rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div style="font-size:1.8rem;display:flex;justify-content:center;gap:.5rem;margin-bottom:.8rem;">
+      <span style="color:#e50914">▶</span><span style="color:#ff0000">▶</span><span>🎬</span>
+    </div>
+    <h1 class="hero-title">What To Watch</h1>
+    <p class="header-sub">Netflix · YouTube · Cinema · All Platforms</p>
+  </div>
+
+  <div class="search-bar">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search title, genre, mood, or keyword…" oninput="handleSearch()" />
+    <button class="btn-search" onclick="clearSearch()">Clear</button>
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div class="divider"></div>
+
+  <div id="output"></div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal" onclick="closeBackdrop(event)">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const PLATFORM_META = {
+  Netflix:     { color:"#e50914", bg:"rgba(229,9,20,0.18)",    logo:"N" },
+  YouTube:     { color:"#ff0000", bg:"rgba(255,0,0,0.14)",     logo:"▶" },
+  Theater:     { color:"#f59e0b", bg:"rgba(245,158,11,0.14)",  logo:"🎬" },
+  Prime:       { color:"#00a8e0", bg:"rgba(0,168,224,0.14)",   logo:"P" },
+  "Disney+":   { color:"#0ea5e9", bg:"rgba(14,165,233,0.14)",  logo:"D+" },
+  "Apple TV+": { color:"#a3a3a3", bg:"rgba(163,163,163,0.1)",  logo:"TV+" },
+};
+const TYPE_ICONS = { Movie:"🎬", Series:"📺", Documentary:"📰", "Short Film":"🎞️", "YouTube":"▶", Anime:"⛩️" };
+const getPM = p => PLATFORM_META[p] || { color:"#8b5cf6", bg:"rgba(139,92,246,0.14)", logo:"▶" };
+
+const ALL_CONTENT = [
+  // COMEDY
+  { title:"The Office", platform:"Prime", type:"Series", genre:"Comedy", year:2005, rating:"9.0/10", duration:"9 Seasons", color:"#d97706", tags:["workplace","cringe-comedy","binge-worthy"], desc:"A mockumentary sitcom about the everyday lives of office employees. Perfectly captures awkward workplace humor with a lovable cast.", why:"Perfect college binge — hilarious, short episodes, great for study breaks.", moods:["comedy","fun","binge"] },
+  { title:"Brooklyn Nine-Nine", platform:"Netflix", type:"Series", genre:"Comedy", year:2013, rating:"8.4/10", duration:"8 Seasons", color:"#2563eb", tags:["police","comedy","feel-good"], desc:"A hilarious comedy set in a New York police precinct with a quirky ensemble cast. Feel-good humor that never gets old.", why:"Easy watch, endlessly funny — great when you need to decompress after exams.", moods:["comedy","fun","feel-good"] },
+  { title:"Superbad", platform:"Prime", type:"Movie", genre:"Comedy", year:2007, rating:"7.6/10", duration:"1h 53m", color:"#ca8a04", tags:["teen","coming-of-age","wild"], desc:"Two co-dependent high school seniors attempt to buy alcohol before a party. A raucous, hilarious rite-of-passage comedy.", why:"A college classic — relatable, chaotic fun from start to finish.", moods:["comedy","fun","classic"] },
+  { title:"Is It Cake?", platform:"Netflix", type:"Series", genre:"Comedy", year:2022, rating:"7.0/10", duration:"1 Season", color:"#ec4899", tags:["reality","fun","bizarre"], desc:"Contestants create hyper-realistic cakes disguised as everyday objects and judges must decide what's real.", why:"Perfectly absurd and stress-free viewing for a lazy afternoon.", moods:["comedy","fun","easy"] },
+
+  // THRILLER / SUSPENSE
+  { title:"Squid Game", platform:"Netflix", type:"Series", genre:"Thriller", year:2021, rating:"8.0/10", duration:"2 Seasons", color:"#16a34a", tags:["survival","dark","gripping"], desc:"Hundreds of cash-strapped players accept an invitation to compete in children's games for a massive prize — with deadly stakes.", why:"Non-stop tension that'll keep you up all night — a modern masterpiece.", moods:["thriller","dark","edge-of-seat"] },
+  { title:"Parasite", platform:"Prime", type:"Movie", genre:"Thriller", year:2019, rating:"8.5/10", duration:"2h 12m", color:"#374151", tags:["class-war","twists","oscar-winning"], desc:"A poor family schemes to infiltrate the lives of a wealthy household — with shocking, unpredictable consequences.", why:"Oscar-winning perfection. A must-watch that will blow your mind.", moods:["thriller","dark","mind-bending","award-worthy"] },
+  { title:"Dark", platform:"Netflix", type:"Series", genre:"Sci-Fi Thriller", year:2017, rating:"8.8/10", duration:"3 Seasons", color:"#1e3a5f", tags:["time-travel","mind-bending","german"], desc:"A mind-bending German sci-fi mystery involving four interconnected families and a time-travel conspiracy spanning centuries.", why:"The most intricate story on Netflix — nothing else compares.", moods:["thriller","mind-bending","sci-fi"] },
+  { title:"Gone Girl", platform:"Prime", type:"Movie", genre:"Thriller", year:2014, rating:"8.1/10", duration:"2h 29m", color:"#7c3aed", tags:["mystery","twists","psychological"], desc:"On their fifth wedding anniversary, a woman disappears leaving behind only clues — and a suspicious husband.", why:"One of the best twist-filled thrillers ever made. Jaw-dropping ending.", moods:["thriller","dark","edge-of-seat"] },
+
+  // EMOTIONAL / DRAMA
+  { title:"Your Name", platform:"Prime", type:"Movie", genre:"Romance / Anime", year:2016, rating:"8.4/10", duration:"1h 52m", color:"#db2777", tags:["anime","romance","tearjerker"], desc:"Two strangers find they are mysteriously swapping bodies. A stunning animated romance that transcends time and space.", why:"Hauntingly beautiful — you will cry happy and sad tears simultaneously.", moods:["romance","emotional","anime"] },
+  { title:"The Pursuit of Happyness", platform:"Netflix", type:"Movie", genre:"Drama", year:2006, rating:"8.0/10", duration:"1h 57m", color:"#b45309", tags:["inspirational","real-story","emotional"], desc:"Based on a true story of a struggling salesman who raises his son while homeless, fighting for a brighter future.", why:"Motivating and deeply emotional — perfect for when you need inspiration.", moods:["emotional","inspirational","drama"] },
+  { title:"Call Me by Your Name", platform:"Prime", type:"Movie", genre:"Drama / Romance", year:2017, rating:"7.9/10", duration:"2h 12m", color:"#f59e0b", tags:["romance","summer","coming-of-age"], desc:"A 17-year-old develops a passionate relationship with his father's graduate student during an Italian summer.", why:"Visually gorgeous and emotionally devastating in the best possible way.", moods:["romance","emotional","drama"] },
+  { title:"Schindler's List", platform:"Prime", type:"Movie", genre:"Historical Drama", year:1993, rating:"9.0/10", duration:"3h 15m", color:"#111827", tags:["ww2","historical","powerful"], desc:"The true story of businessman Oskar Schindler who saved over a thousand Jewish refugees during the Holocaust.", why:"One of the greatest films ever made — essential viewing for every college student.", moods:["emotional","drama","award-worthy","classic"] },
+
+  // MIND-BENDING
+  { title:"Inception", platform:"Netflix", type:"Movie", genre:"Sci-Fi", year:2010, rating:"8.8/10", duration:"2h 28m", color:"#1d4ed8", tags:["dream","sci-fi","twists"], desc:"A thief who enters the dreams of others is given the task of planting an idea into someone's mind — a nearly impossible mission.", why:"The ultimate mind-bending blockbuster that demands full attention.", moods:["mind-bending","sci-fi","thriller"] },
+  { title:"Black Mirror", platform:"Netflix", type:"Series", genre:"Sci-Fi / Anthology", year:2011, rating:"8.8/10", duration:"6 Seasons", color:"#18181b", tags:["tech","dark","dystopia"], desc:"An anthology series exploring the dark side of technology and modern society through standalone episodes.", why:"Each episode is a standalone movie — perfect for one-night sessions with big ideas.", moods:["mind-bending","sci-fi","dark","thriller"] },
+  { title:"Interstellar", platform:"Prime", type:"Movie", genre:"Sci-Fi", year:2014, rating:"8.7/10", duration:"2h 49m", color:"#0f172a", tags:["space","emotional","epic"], desc:"A team of astronauts travel through a wormhole near Saturn in search of a new home for humanity.", why:"Visually stunning and emotionally powerful — the greatest space film of the generation.", moods:["mind-bending","sci-fi","emotional","epic"] },
+  { title:"Everything Everywhere All at Once", platform:"Prime", type:"Movie", genre:"Sci-Fi / Comedy", year:2022, rating:"7.8/10", duration:"2h 19m", color:"#6d28d9", tags:["multiverse","weird","oscar-winning"], desc:"A Chinese-American laundromat owner must connect with alternate universe versions of herself to save all realities.", why:"Chaotic, emotional, hilarious, and Oscar-winning — nothing else is like it.", moods:["mind-bending","comedy","emotional","award-worthy"] },
+
+  // ROMANCE
+  { title:"To All the Boys I've Loved Before", platform:"Netflix", type:"Movie", genre:"Romance", year:2018, rating:"7.1/10", duration:"1h 39m", color:"#f43f5e", tags:["teen-romance","cute","feel-good"], desc:"A teenage girl's secret love letters are mysteriously sent to each of her crushes, turning her life upside down.", why:"Light, fun, and feel-good — the perfect Friday night movie.", moods:["romance","feel-good","comedy"] },
+  { title:"Pride & Prejudice", platform:"Prime", type:"Movie", genre:"Romance / Period Drama", year:2005, rating:"7.8/10", duration:"2h 9m", color:"#84cc16", tags:["classic","period","jane-austen"], desc:"A spirited young woman navigates love, society, and misunderstanding in 19th century England.", why:"Timeless romance — once you watch it, you'll understand all the references.", moods:["romance","drama","classic"] },
+  { title:"When Harry Met Sally", platform:"YouTube", type:"Movie", genre:"Romantic Comedy", year:1989, rating:"7.7/10", duration:"1h 36m", color:"#fbbf24", tags:["classic","romcom","witty"], desc:"Two strong-willed people meet repeatedly over the years, arguing that men and women can never truly be 'just friends'.", why:"The gold standard of romantic comedies — charming, smart, and iconic.", moods:["romance","comedy","classic"] },
+
+  // SCI-FI / EPIC
+  { title:"The Martian", platform:"Disney+", type:"Movie", genre:"Sci-Fi", year:2015, rating:"8.0/10", duration:"2h 24m", color:"#dc2626", tags:["space","survival","funny"], desc:"An astronaut is stranded alone on Mars after a fierce storm and must use science and humor to survive.", why:"Science, humor, and survival — the most enjoyable space movie for STEM students.", moods:["sci-fi","comedy","epic"] },
+  { title:"Dune: Part One", platform:"Netflix", type:"Movie", genre:"Sci-Fi / Epic", year:2021, rating:"8.0/10", duration:"2h 35m", color:"#92400e", tags:["epic","world-building","stunning"], desc:"A young nobleman travels to the most dangerous planet in the universe to secure the future of his family and people.", why:"Breathtaking world-building and cinematography — sci-fi at its grandest scale.", moods:["sci-fi","epic"] },
+  { title:"Stranger Things", platform:"Netflix", type:"Series", genre:"Sci-Fi / Horror", year:2016, rating:"8.7/10", duration:"4 Seasons", color:"#be123c", tags:["80s","supernatural","nostalgic"], desc:"A group of kids in a small Indiana town uncover supernatural secrets when their friend goes missing.", why:"The ultimate binge series — thrilling, nostalgic, and endlessly entertaining.", moods:["sci-fi","thriller","horror","binge"] },
+
+  // HORROR
+  { title:"Get Out", platform:"Prime", type:"Movie", genre:"Horror / Thriller", year:2017, rating:"7.7/10", duration:"1h 44m", color:"#1c1917", tags:["social-horror","twists","oscar-winning"], desc:"A Black man visits his white girlfriend's family estate only to discover a disturbing secret lurking beneath the surface.", why:"Brilliant social commentary wrapped in one of the scariest films of the decade.", moods:["horror","thriller","dark","award-worthy"] },
+  { title:"Hereditary", platform:"Prime", type:"Movie", genre:"Horror", year:2018, rating:"7.3/10", duration:"2h 7m", color:"#292524", tags:["slow-burn","terrifying","family"], desc:"After a family's mysterious matriarch passes away, strange and increasingly disturbing things begin to happen.", why:"One of the most disturbing and genuinely scary films ever made. Watch with lights on.", moods:["horror","dark"] },
+  { title:"The Haunting of Hill House", platform:"Netflix", type:"Series", genre:"Horror / Drama", year:2018, rating:"8.6/10", duration:"1 Season", color:"#1e1b4b", tags:["ghosts","family-drama","emotional"], desc:"A family who grew up in a haunted mansion and the long-term effects it had on them as adults.", why:"As emotionally devastating as it is terrifying — redefines what horror can be.", moods:["horror","emotional","drama"] },
+
+  // DOCUMENTARY
+  { title:"The Social Dilemma", platform:"Netflix", type:"Documentary", genre:"Tech / Society", year:2020, rating:"7.6/10", duration:"1h 34m", color:"#0c4a6e", tags:["tech","social-media","eye-opening"], desc:"Tech experts from Silicon Valley reveal how social media platforms are designed to manipulate and addict users.", why:"Every college student should watch this once — it will change how you use your phone.", moods:["documentary","learn","eye-opening"] },
+  { title:"13th", platform:"Netflix", type:"Documentary", genre:"Social / Political", year:2016, rating:"8.2/10", duration:"1h 40m", color:"#7f1d1d", tags:["race","america","powerful"], desc:"An exploration of the intersection of race, justice, and mass incarceration in the United States.", why:"A landmark documentary that is essential viewing for understanding modern America.", moods:["documentary","learn","powerful"] },
+  { title:"Free Solo", platform:"Disney+", type:"Documentary", genre:"Adventure", year:2018, rating:"8.2/10", duration:"1h 40m", color:"#1a2e05", tags:["climbing","extreme","breathtaking"], desc:"Alex Honnold attempts to become the first person to climb the 3,000-foot El Capitan wall without any ropes.", why:"The most nerve-wracking documentary ever made — absolute edge-of-your-seat watching.", moods:["documentary","adventure","epic"] },
+
+  // YOUTUBE / EDUCATIONAL
+  { title:"Kurzgesagt – In a Nutshell", platform:"YouTube", type:"YouTube", genre:"Educational / Science", year:2013, rating:"9.5/10", duration:"10–15 min each", color:"#f97316", tags:["science","animation","mind-blowing"], desc:"Beautifully animated videos explaining complex topics from the universe's end to the immune system. Free on YouTube.", why:"The best educational YouTube channel for curious minds — every video teaches you something new.", moods:["learn","documentary","easy"] },
+  { title:"Veritasium", platform:"YouTube", type:"YouTube", genre:"Science / Engineering", year:2011, rating:"9.2/10", duration:"15–30 min each", color:"#0369a1", tags:["physics","science","experiments"], desc:"Derek Muller explores counterintuitive science, engineering feats, and fascinating experiments with incredible depth.", why:"Perfect for STEM students — makes you see the world differently.", moods:["learn","documentary","mind-bending"] },
+  { title:"Ted-Ed", platform:"YouTube", type:"YouTube", genre:"Education", year:2011, rating:"9.0/10", duration:"5–10 min each", color:"#e11d48", tags:["animated","lessons","diverse"], desc:"Animated lessons from the world's most dedicated educators, covering everything from history to psychology to math.", why:"Bite-sized knowledge bombs — great to watch between classes or during a meal.", moods:["learn","easy","documentary"] },
+  { title:"The Film Theorists", platform:"YouTube", type:"YouTube", genre:"Film Analysis", year:2011, rating:"8.5/10", duration:"15–25 min each", color:"#7c3aed", tags:["movies","analysis","fun"], desc:"MatPat digs deep into the science, hidden lore, and secrets behind your favorite movies and TV shows.", why:"Makes rewatching films 10x more interesting — perfect for film buffs.", moods:["learn","comedy","fun"] },
+
+  // ANIME
+  { title:"Attack on Titan", platform:"Netflix", type:"Anime", genre:"Action / Dark Fantasy", year:2013, rating:"9.0/10", duration:"4 Seasons", color:"#b91c1c", tags:["epic","dark","must-watch"], desc:"Humanity lives inside cities surrounded by enormous walls due to Titans — gigantic humanoid beings who devour humans.", why:"The greatest anime story ever told — shocking twists and an unforgettable ending.", moods:["anime","thriller","dark","epic"] },
+  { title:"Death Note", platform:"Netflix", type:"Anime", genre:"Psychological Thriller", year:2006, rating:"9.0/10", duration:"1 Season", color:"#1c1917", tags:["psychological","cat-and-mouse","iconic"], desc:"A student discovers a supernatural notebook that kills anyone whose name is written in it — and uses it to create a utopia.", why:"One of the most gripping cat-and-mouse stories ever told. Binge it in a weekend.", moods:["anime","thriller","mind-bending"] },
+  { title:"Spirited Away", platform:"Netflix", type:"Anime", genre:"Fantasy / Adventure", year:2001, rating:"8.6/10", duration:"2h 4m", color:"#0891b2", tags:["miyazaki","magical","timeless"], desc:"A young girl wanders into a world ruled by gods, witches, and spirits where humans are changed into beasts.", why:"A timeless Ghibli masterpiece — magical, strange, and deeply moving.", moods:["anime","feel-good","emotional"] },
+
+  // FEEL-GOOD
+  { title:"The Grand Budapest Hotel", platform:"Prime", type:"Movie", genre:"Comedy / Adventure", year:2014, rating:"8.1/10", duration:"1h 39m", color:"#db2777", tags:["wes-anderson","quirky","stunning"], desc:"A legendary concierge and his lobby boy go on a wild adventure involving stolen paintings and a murder mystery.", why:"Visually gorgeous and endlessly charming — Wes Anderson at his finest.", moods:["comedy","feel-good","award-worthy"] },
+  { title:"Soul", platform:"Disney+", type:"Movie", genre:"Animation / Drama", year:2020, rating:"8.0/10", duration:"1h 40m", color:"#0d9488", tags:["pixar","life","emotional"], desc:"A jazz musician accidentally ends up in a fantastical place that determines human personalities before they're born.", why:"A profound Pixar meditation on what makes life worth living — hits different in college.", moods:["feel-good","emotional","animated"] },
+  { title:"Chef's Table", platform:"Netflix", type:"Documentary", genre:"Food / Art", year:2015, rating:"8.7/10", duration:"6 Seasons", color:"#a16207", tags:["food","beautiful","inspiring"], desc:"A stunning documentary series profiling the world's most innovative chefs and their extraordinary culinary journeys.", why:"Incredibly beautiful and inspiring — even if you can't cook, you'll be obsessed.", moods:["documentary","feel-good","easy"] },
+
+  // TRUE CRIME
+  { title:"Making a Murderer", platform:"Netflix", type:"Documentary", genre:"True Crime", year:2015, rating:"8.6/10", duration:"2 Seasons", color:"#374151", tags:["true-crime","justice","gripping"], desc:"Documentary series following Steven Avery's wrongful conviction and his subsequent murder trial in Wisconsin.", why:"The documentary that launched the true crime obsession — impossible to stop watching.", moods:["documentary","thriller","true-crime"] },
+  { title:"The Jinx", platform:"YouTube", type:"Documentary", genre:"True Crime", year:2015, rating:"8.7/10", duration:"1 Season", color:"#1e293b", tags:["true-crime","real-life","chilling"], desc:"HBO docuseries following Robert Durst, an eccentric real estate heir connected to multiple suspicious deaths.", why:"One of the most jaw-dropping true crime stories ever documented.", moods:["documentary","thriller","true-crime"] },
+
+  // WORLD CINEMA
+  { title:"Roma", platform:"Netflix", type:"Movie", genre:"Drama", year:2018, rating:"7.7/10", duration:"2h 15m", color:"#64748b", tags:["mexican","oscar-winning","beautiful"], desc:"A year in the life of a middle-class family in Mexico City told through the eyes of their beloved housekeeper.", why:"An Oscar-winning visual poem — slow, stunning, and unforgettable.", moods:["drama","award-worthy","world-cinema"] },
+  { title:"Money Heist (La Casa de Papel)", platform:"Netflix", type:"Series", genre:"Crime / Thriller", year:2017, rating:"8.3/10", duration:"5 Seasons", color:"#dc2626", tags:["heist","spanish","binge-worthy"], desc:"A criminal mastermind recruits eight thieves to pull off an audacious heist on the Royal Mint of Spain.", why:"Gripping, stylish, and endlessly twisty — the ultimate international binge.", moods:["thriller","binge","world-cinema"] },
+];
+
+const CATEGORIES = [
+  { label: "🔥 All", moods: [] },
+  { label: "😂 Comedy", moods: ["comedy","fun"] },
+  { label: "😱 Thriller", moods: ["thriller","edge-of-seat"] },
+  { label: "🤯 Mind-Bending", moods: ["mind-bending"] },
+  { label: "❤️ Romance", moods: ["romance"] },
+  { label: "🚀 Sci-Fi", moods: ["sci-fi"] },
+  { label: "👻 Horror", moods: ["horror"] },
+  { label: "📚 Documentary", moods: ["documentary","learn"] },
+  { label: "😢 Emotional", moods: ["emotional"] },
+  { label: "⛩️ Anime", moods: ["anime"] },
+  { label: "🎭 Award-Worthy", moods: ["award-worthy"] },
+  { label: "😊 Feel-Good", moods: ["feel-good"] },
+];
+
+let activeCategory = [];
+let searchQuery = "";
+
+// Build filter buttons
+const filtersEl = document.getElementById("filters");
+CATEGORIES.forEach(cat => {
+  const btn = document.createElement("button");
+  btn.className = "filter-btn" + (cat.moods.length === 0 ? " active" : "");
+  btn.textContent = cat.label;
+  btn.onclick = () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    activeCategory = cat.moods;
+    renderAll();
+  };
+  filtersEl.appendChild(btn);
+});
+
+function handleSearch() {
+  searchQuery = document.getElementById("searchInput").value.toLowerCase();
+  renderAll();
+}
+
+function clearSearch() {
+  document.getElementById("searchInput").value = "";
+  searchQuery = "";
+  renderAll();
+}
+
+function getFiltered() {
+  return ALL_CONTENT.filter(item => {
+    const matchesCat = activeCategory.length === 0 || activeCategory.some(m => item.moods.includes(m));
+    const q = searchQuery;
+    const matchesSearch = !q || [item.title, item.genre, item.platform, item.type, ...item.tags, ...item.moods]
+      .join(" ").toLowerCase().includes(q);
+    return matchesCat && matchesSearch;
+  });
+}
+
+function renderAll() {
+  const filtered = getFiltered();
+  const output = document.getElementById("output");
+
+  if (filtered.length === 0) {
+    output.innerHTML = `<div class="empty">🍿 No results found. Try a different search or category.</div>`;
+    return;
+  }
+
+  // Group by type
+  const groups = {};
+  filtered.forEach(item => {
+    const key = item.type === "YouTube" ? "📺 YouTube Channels" :
+                item.type === "Anime" ? "⛩️ Anime" :
+                item.type === "Documentary" ? "📰 Documentaries" :
+                item.type === "Series" ? "📺 Series" : "🎬 Movies";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(item);
+  });
+
+  const order = ["🎬 Movies", "📺 Series", "⛩️ Anime", "📰 Documentaries", "📺 YouTube Channels"];
+  let html = "";
+
+  order.forEach(key => {
+    if (!groups[key] || groups[key].length === 0) return;
+    html += `<div class="section-title">${key}</div><div class="grid">`;
+    groups[key].forEach((item, i) => {
+      const pm = getPM(item.platform);
+      const icon = TYPE_ICONS[item.type] || "▶";
+      const tags = (item.tags || []).slice(0, 2).map(t => `<span class="vibe-tag">${t}</span>`).join("");
+      html += `
+        <div class="card" style="animation-delay:${i*0.05}s" onclick='openModal(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+          <div class="card-inner" style="background:linear-gradient(160deg,${item.color} 0%,#0a0a0f 100%);">
+            <div class="card-glow" style="background:radial-gradient(ellipse at 50% 0%,${item.color}88 0%,transparent 70%);"></div>
+            <div class="card-icon">${icon}</div>
+            <div class="card-overlay"></div>
+            <div class="card-content">
+              <div class="plat-badge" style="background:${pm.bg};color:${pm.color}">${pm.logo} ${item.platform}</div>
+              <div class="card-title">${item.title}</div>
+              <div class="card-meta">${item.year} · ${item.duration}</div>
+              <div class="vibe-tags">${tags}</div>
+            </div>
+          </div>
+        </div>`;
+    });
+    html += `</div><p class="hint">Click any title for details</p><div class="divider"></div>`;
+  });
+
+  output.innerHTML = html;
+}
+
+function openModal(item) {
+  const pm = getPM(item.platform);
+  const tags = (item.tags || []).map(t => `<span class="modal-tag">#${t}</span>`).join("");
+  document.getElementById("modalContent").innerHTML = `
+    <div class="modal-meta" style="margin-bottom:.8rem">
+      <span class="plat-badge" style="background:${pm.bg};color:${pm.color};padding:4px 10px;border-radius:6px;font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">${pm.logo} ${item.platform}</span>
+      <span>·</span><span>${item.type}</span><span>·</span><span>${item.year}</span><span>·</span><span>${item.duration}</span>
+    </div>
+    <h2 class="modal-title">${item.title}</h2>
+    <div class="modal-meta">
+      <span style="color:#fbbf24">★</span>
+      <span>${item.rating}</span>
+      <span>·</span>
+      <span>${item.genre}</span>
+    </div>
+    <p class="modal-desc">${item.desc}</p>
+    <div class="why-box">✦ ${item.why}</div>
+    <div class="modal-tags">${tags}</div>`;
+  document.getElementById("modal").classList.add("open");
+}
+
+function closeModal() { document.getElementById("modal").classList.remove("open"); }
+function closeBackdrop(e) { if (e.target === document.getElementById("modal")) closeModal(); }
+
+// Initial render
+renderAll();
+</script>
+</body>
+</html>
